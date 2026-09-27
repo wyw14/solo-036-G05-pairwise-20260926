@@ -7,6 +7,7 @@ import (
 	"github.com/wyw14/solo-036/internal/permit"
 	"github.com/wyw14/solo-036/internal/pressure"
 	"github.com/wyw14/solo-036/internal/receiver"
+	"github.com/wyw14/solo-036/internal/residue"
 	"github.com/wyw14/solo-036/internal/route"
 	"github.com/wyw14/solo-036/internal/run"
 	"github.com/wyw14/solo-036/internal/tracker"
@@ -25,6 +26,7 @@ type Runtime struct {
 	Launcher   *launcher.Controller
 	Valves     *valve.Controller
 	Receiver   *receiver.Controller
+	Residue    *residue.Store
 	Compressor *compressor.Worker
 	mu         sync.Mutex
 	control    *ControlState
@@ -41,6 +43,7 @@ func NewRuntime() *Runtime {
 	launch := launcher.NewController(p, permits)
 	valves := valve.NewController(p)
 	recv := receiver.NewController()
+	res := residue.NewStore()
 	worker := compressor.NewWorker(p, runs)
-	return &Runtime{Runs: runs, Routes: routes, Tracker: tracks, Lineage: lineage, Journal: journalStore, Pressure: p, Permits: permits, Launcher: launch, Valves: valves, Receiver: recv, Compressor: worker, control: defaultControlState()}
+	return &Runtime{Runs: runs, Routes: routes, Tracker: tracks, Lineage: lineage, Journal: journalStore, Pressure: p, Permits: permits, Launcher: launch, Valves: valves, Receiver: recv, Residue: res, Compressor: worker, control: defaultControlState()}
 }

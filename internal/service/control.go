@@ -511,6 +511,7 @@ func (r *Runtime) Snapshot() model.ControlSnapshot {
 		Permits:    make([]model.PermitState, 0),
 		Runs:       r.Runs.Snapshot(),
 		Incidents:  append([]model.Incident(nil), control.Incidents...),
+		Residue:    r.Residue.SnapshotAll(),
 	}
 	for _, value := range control.Stations {
 		snapshot.Stations = append(snapshot.Stations, value)
@@ -590,6 +591,7 @@ func (r *Runtime) RecoverPersistent() (RecoveryReport, error) {
 		}
 	}
 	permit.Restore(r.Permits, permitEvents)
+	r.Residue.Restore(snapshot.Control.Residue)
 	r.mu.Lock()
 	r.control.Stations = snapshot.Control.StationIndex()
 	r.control.Routes = make(map[string]model.RouteState)

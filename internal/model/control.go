@@ -108,17 +108,18 @@ type OperationRecord struct {
 }
 
 type ControlSnapshot struct {
-	Revision   string          `json:"revision"`
-	CapturedAt time.Time       `json:"captured_at"`
-	Stations   []Station       `json:"stations"`
-	Valves     []ValveState    `json:"valves"`
-	Closures   []ClosureState  `json:"closures"`
-	Pressures  []PressureState `json:"pressures"`
-	Routes     []RouteState    `json:"routes"`
-	Tracking   []TrackingState `json:"tracking"`
-	Permits    []PermitState   `json:"permits"`
-	Runs       []Run           `json:"runs"`
-	Incidents  []Incident      `json:"incidents"`
+	Revision   string           `json:"revision"`
+	CapturedAt time.Time        `json:"captured_at"`
+	Stations   []Station        `json:"stations"`
+	Valves     []ValveState     `json:"valves"`
+	Closures   []ClosureState   `json:"closures"`
+	Pressures  []PressureState  `json:"pressures"`
+	Routes     []RouteState     `json:"routes"`
+	Tracking   []TrackingState  `json:"tracking"`
+	Permits    []PermitState    `json:"permits"`
+	Runs       []Run            `json:"runs"`
+	Incidents  []Incident       `json:"incidents"`
+	Residue    []ResidueArchive `json:"residue,omitempty"`
 }
 
 func (s Station) Validate() error {
