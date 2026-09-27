@@ -14,6 +14,7 @@ import (
 	"github.com/wyw14/solo-036/internal/model"
 	"github.com/wyw14/solo-036/internal/permit"
 	"github.com/wyw14/solo-036/internal/receiver"
+	"github.com/wyw14/solo-036/internal/residue"
 	"github.com/wyw14/solo-036/internal/route"
 	"github.com/wyw14/solo-036/internal/run"
 	"github.com/wyw14/solo-036/internal/tracker"
@@ -53,11 +54,12 @@ type ReceiveRequest struct {
 }
 
 type RecoveryReport struct {
-	RecoveredRuns    int  `json:"recovered_runs"`
-	RecoveredRoutes  int  `json:"recovered_routes"`
-	RecoveredPermits int  `json:"recovered_permits"`
-	JournalEvents    int  `json:"journal_events"`
-	Ready            bool `json:"ready"`
+	RecoveredRuns            int  `json:"recovered_runs"`
+	RecoveredRoutes          int  `json:"recovered_routes"`
+	RecoveredPermits         int  `json:"recovered_permits"`
+	RecoveredResidueArchives int  `json:"recovered_residue_archives"`
+	JournalEvents            int  `json:"journal_events"`
+	Ready                    bool `json:"ready"`
 }
 
 func defaultControlState() *ControlState {
@@ -433,6 +435,7 @@ func (r *Runtime) Receive(runID string, request ReceiveRequest) (model.Operation
 	}); err != nil {
 		return model.OperationRecord{}, err
 	}
+	r.openResidueArchive(runID, request.StationID)
 	return r.Operation(runID)
 }
 
@@ -623,12 +626,22 @@ func (r *Runtime) RecoverPersistent() (RecoveryReport, error) {
 	if err != nil {
 		return RecoveryReport{}, err
 	}
+	residueEvents := make([]model.Event, 0)
+	for _, event := range events {
+		if strings.HasPrefix(event.Kind, "residue_") {
+			residueEvents = append(residueEvents, event)
+		}
+	}
+	if err := residue.Restore(r.Residue, residueEvents); err != nil {
+		return RecoveryReport{}, fmt.Errorf("restore residue: %w", err)
+	}
 	return RecoveryReport{
-		RecoveredRuns:    len(snapshot.Control.Runs),
-		RecoveredRoutes:  len(leasing),
-		RecoveredPermits: len(permitEvents),
-		JournalEvents:    len(events),
-		Ready:            true,
+		RecoveredRuns:            len(snapshot.Control.Runs),
+		RecoveredRoutes:          len(leasing),
+		RecoveredPermits:         len(permitEvents),
+		RecoveredResidueArchives: r.Residue.ArchiveCount(),
+		JournalEvents:            len(events),
+		Ready:                    true,
 	}, nil
 }
 
